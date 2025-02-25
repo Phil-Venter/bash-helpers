@@ -27,6 +27,8 @@
 # Constants and Initial Variable Setup
 #------------------------------------------------------------------------------
 
+ERROR_PREFIX="\033[37;41;1m ERR \033[0m"
+
 declare -Ar COLOURS=(
     [aliceblue]='F0F8FF'       [antiquewhite]='FAEBD7'      [aqua]='00FFFF'                 [aquamarine]='7FFFD4'
     [azure]='F0FFFF'           [beige]='F5F5DC'             [bisque]='FFE4C4'               [black]='000000'
@@ -121,10 +123,7 @@ effect() {
 #------------------------------------------------------------------------------
 
 if (( $# == 0 )); then
-    colour BG 48 "E7000B"
-    colour FG 38 "FEF2F2"
-    printf "%s%s %s \033[0m %s\033[0m\n" "$FG" "$BG" "ERR" "you need to provide args to this script" >&2
-    exit 1
+    echo -e "$ERROR_PREFIX this script requires a user defined pattern." >&2 ; exit 1
 fi
 
 #------------------------------------------------------------------------------
@@ -141,6 +140,7 @@ while [[ $LINE =~ \{([^}]+;[^}]+)\} ]]; do
         REPLACEMENT+="{$PART}"
     done
     LINE="${LINE//${BASH_REMATCH[0]}/$REPLACEMENT}"
+done
 
 # Process background color placeholders
 while [[ $LINE =~ \{[[:space:]]*bg:([a-zA-Z0-9]+)[[:space:]]*\} ]]; do
@@ -153,20 +153,17 @@ done
 while [[ $LINE =~ \{[[:space:]]*fg:([a-zA-Z0-9]+)[[:space:]]*\} ]]; do
     colour COLOR 38 "${BASH_REMATCH[1]}"
     LINE="${LINE//${BASH_REMATCH[0]}/$COLOR}"
-
 done
 
 # Process text effect placeholders
 while [[ $LINE =~ \{[[:space:]]*fx:([a-zA-Z\-]+)[[:space:]]*\} ]]; do
     effect EFFECT "${BASH_REMATCH[1]}"
     LINE="${LINE//${BASH_REMATCH[0]}/$EFFECT}"
-
 done
 
 # Reset formatting placeholders
 while [[ $LINE =~ \{[[:space:]]*reset[[:space:]]*\} ]]; do
     LINE="${LINE//${BASH_REMATCH[0]}/$'\033[0m'}"
-
 done
 
 #------------------------------------------------------------------------------
